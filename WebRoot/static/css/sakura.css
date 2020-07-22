@@ -1,0 +1,11 @@
+body {
+  width: 100%;
+  background: linear-gradient(#80f9f9 30%, #d3fcfd 80%);
+  padding:0;
+  margin:0;
+}
+
+canvas {
+  display: block;
+  max-width: 100%;
+}

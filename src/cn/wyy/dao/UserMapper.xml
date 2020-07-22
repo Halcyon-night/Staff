@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wyy.dao.UserMapper">
+	<!-- 用户信息Map集合 -->
+	<resultMap type="User" id="UserList">
+		<id property="userId" column="userId"/>
+		<result property="name" column="name"/>
+		<result property="userName" column="userName"/>
+		<result property="password" column="password"/>
+		<result property="roleId" column="roleId"/>
+		<!-- 一对一的形式 -->
+		<association property="role" javaType="Role">
+			<id property="roleId" column="r_roleId"/>
+			<result property="roleName" column="roleName"/>
+			<result property="roleTime" column="roleTime"/>
+			<result property="roleSuperior" column="roleSuperior"/>
+		</association>
+	</resultMap>
+	
+	<!-- 注册信息 -->
+	<insert id="addUserRegister" parameterType="Map">
+		INSERT INTO `user`(`name`,`userName`,`password`,`roleId`)
+		VALUES(#{name},#{userName},#{password},#{roleId});
+	</insert>
+	
+	<!-- 职位信息Map集合 -->
+	<!-- <resultMap type="Role" id="RoleList">
+		<id property="roleId" column="roleId"/>
+		<result property="roleName" column="roleName"/>
+		<result property="roleTime" column="roleTime"/>
+	</resultMap> -->
+	
+	<!-- 用户登录 -->
+	<select id="getUserLogin" resultMap="UserList">
+		SELECT `userName`,`password`,`name`,roleId
+		FROM `user`
+		WHERE `userName`=#{userName} AND `password`= #{password};
+	</select>
+	
+	<!-- 下拉框信息,职位查询 -->
+	<select id="getRoleList" resultType="Role">
+		SELECT * FROM `role`;
+	</select>
+	
+	<!-- 查询判断用户名是否存在 -->
+	<select id="checkUserName" parameterType="string" resultType="boolean">
+		SELECT COUNT(1) FROM `user` WHERE `userName` = #{userName};
+	</select>
+	
+	<!-- 读取展示信息菜单 -->
+	<select id="getMenuList" resultType="Menu">
+		SELECT * FROM `menu`;
+	</select>
+	
+	<!-- 两表查询 -->
+	<select id="getUserList" resultMap="UserList">
+		SELECT u.`userId`,u.`name`,u.`userName`,u.`password`,u.`roleId`,
+		r.`roleId` AS r_roleId ,r.`roleName`,r.`roleTime`,r.`roleSuperior`
+		FROM `user` AS u
+		LEFT JOIN `role` AS r
+		ON u.`roleId` = r.`roleId`
+	</select>
+	
+	<!-- 二级联动 -->
+	<select id="getRole" resultType="Role">
+		SELECT * FROM role r, role r2 WHERE r.`roleSuperior`=r2.`roleId` AND r.`roleId`=#{roleId}
+	</select>
+	
+	<!-- 新增员工信息 -->
+	<insert id="addUser" parameterType="Map">
+		INSERT INTO `user`(`name`,`userName`,`password`,`roleId`)
+		VALUES(#{name},#{userName},#{password},#{roleId});
+	</insert>
+	
+		<!-- 批量删除用户信息 -->
+	<delete id="deleteUser" parameterType="java.util.List">
+		DELETE FROM `user` WHERE `userId` IN
+		<foreach collection="list" index="index" item="T1" open="(" separator="," close=")">
+             #{T1}
+        </foreach>
+	</delete>
+	
+	<!-- 单条删除信息 -->
+	<delete id="deleteById" parameterType="Integer">
+		DELETE FROM `user` WHERE `userId` = #{userId}
+	</delete>
+	
+	<!-- 数据回显 -->
+	<select id="echoUser" resultMap="UserList">
+		SELECT * FROM `user` WHERE `userId` = #{userId};
+	</select>
+	
+	<!-- 修改用户信息 -->
+	<update id="updateUser" parameterType="Map">
+		UPDATE `user` 
+		<set>
+			<if test="name != null">`name` = #{name},</if>
+			<if test="userName != null ">`userName`=#{userName},</if>
+			<if test="roleId != null">`roleId`=#{roleId}</if>
+		</set>
+		 WHERE `roleId`=#{roleId}
+	
+	</update>
+</mapper>

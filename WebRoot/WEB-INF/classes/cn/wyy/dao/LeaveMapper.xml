@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="cn.wyy.dao.LeaveMapper">
+ 	<resultMap type="Leave" id="LeaveList">
+ 		<id property="leaveId" column="leaveId"/>
+ 		<result property="leave_userId" column="leave_userId"/>
+ 		<result property="leave_roleId" column="leave_roleId"/>
+ 		<result property="leaveState" column="leaveState"/>
+ 		<result property="leaveTime" column="leaveTime"/>
+ 		<result property="leaveDays" column="leaveDays"/>
+ 		<result property="leaveAdopt" column="leaveAdopt"/>
+ 		<!-- 一对一的形式 -->
+		<association property="user" javaType="User">
+			<id property="userId" column="u_userId"/>
+			<result property="name" column="name"/>
+			<result property="userName" column="userName"/>
+			<result property="password" column="password"/>
+			<result property="roleId" column="roleId"/>
+		</association>
+ 		<!-- 一对一的形式 -->
+		<association property="role" javaType="Role">
+			<id property="roleId" column="r_roleId"/>
+			<result property="roleName" column="roleName"/>
+			<result property="roleTime" column="roleTime"/>
+			<result property="roleSuperior" column="roleSuperior"/>
+		</association>
+ 	</resultMap>
+ 	
+ 	<!-- 查询请假单信息 -->
+ 	<select id="getLeaveList" resultMap="LeaveList">
+ 		SELECT l.`leaveId`,l.`leave_userId`,l.`leave_roleId`,l.`leaveState`,l.`leaveTime`,l.`leaveDays`,l.`leaveAdopt`,
+		u.`userId` AS u_userId,u.`name`,u.`userName`,u.`password`,u.`roleId`,
+		r.`roleId` AS r_roleId,r.`roleName`,r.`roleTime`,r.`roleSuperior`
+		FROM `leave` AS l
+		LEFT JOIN `user` AS u
+		ON l.`leave_userId` = u.`userId`
+		LEFT JOIN `role` AS r
+		ON l.`leave_roleId` = r.`roleId`
+ 	</select>
+ 	
+ 	
+ 	<!-- 查询请假人姓名,展示下拉框信息 -->
+ 	<select id="getUserList" resultType="User">
+ 		SELECT * FROM `user`;
+ 	</select>
+ 	
+ 	<!-- 查询职位名称 -->
+ 	<select id="getRoleList" resultType="Role">
+ 		SELECT * FROM `role`;
+ 	</select>
+ 	
+ 	<!-- 添加请假单信息 -->
+ 	<insert id="addleave" parameterType="Map">
+ 		INSERT INTO `leave`(`leave_userId`,`leave_roleId`,`leaveState`,`leaveTime`,`leaveDays`,`leaveAdopt`)
+		VALUES(#{leave_userId},#{leave_roleId},#{leaveState},#{leaveTime},#{leaveDays},#{leaveAdopt});
+ 	</insert>
+ 	
+ 	<update id="updateleave" parameterType="Map">
+ 		UPDATE `leave` SET `leaveAdopt` = #{leaveAdopt} WHERE `leaveId` = #{leaveId};
+ 	</update>
+ </mapper>
+ 
+
+
+
+
+
+

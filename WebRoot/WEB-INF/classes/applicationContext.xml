@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.2.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+<!-- 配置myBatis的核心配置数据源信息 -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/staff?useUnicode=true&amp;characterEncoding=utf-8&amp;zeroDateTimeBehavior=convertToNull"/>
+		<property name="username" value="root"/>
+		<property name="password" value="123456"/>
+	</bean>
+	<!-- 配置SqlSessionFactoryBean工厂函数 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 引用数据源组件 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 引用MyBatis配置文件中的配置 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<!-- 配置SQL映射文件信息 -->
+		<property name="mapperLocations">
+			<list>
+				<!-- 加载SQL映射文件,classpath:cn/user/dao/**/*.xml表示的是扫描cn.smbms.dao包及其任意层级子包中,任意名称的xml类型的文件 -->
+				<value>classpath:cn/wyy/dao/**/*.xml</value>
+			</list>
+		</property>
+	</bean>
+	
+	
+	<!-- 使用MapperScannerConfigurer映射器,配置DAO组件MapperScannerConfigurer映射器配置,自动扫描dao层下面的接口,value:可以使用“,”逗号隔开,写多个包名 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.wyy.dao"></property>
+	</bean>
+
+	<!-- 加入了注解,添加该标签自动扫描srvice层的实现类下面的方法 -->
+	<context:component-scan base-package="cn.wyy.service"/>
+	
+	
+	<!-- 声明 -->
+	<bean id="theLogger" class="cn.wyy.aop.AroundLogger"></bean>
+	<!-- 定义事务管理器 -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 通过<tx:advice>标签为指定的事务管理器设置事务属性 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<!-- 定义属性,声明事务规则 -->
+		<tx:attributes>
+			<tx:method name="find*" propagation="SUPPORTS"/>
+			<tx:method name="insert*" propagation="REQUIRED"/>
+			<tx:method name="update*" propagation="REQUIRED" />  
+			<tx:method name="edit*" propagation="REQUIRED" />  
+			<tx:method name="save*" propagation="REQUIRED" />  
+			<tx:method name="add*" propagation="REQUIRED" />  
+			<tx:method name="new*" propagation="REQUIRED" />  
+			<tx:method name="set*" propagation="REQUIRED" />  
+			<tx:method name="remove*" propagation="REQUIRED" />  
+			<tx:method name="del*" propagation="REQUIRED" />  
+			<tx:method name="change*" propagation="REQUIRED" />  
+			<tx:method name="check*" propagation="REQUIRED" />  
+			<tx:method name="get*" propagation="REQUIRED" read-only="true" />  
+			<tx:method name="find*" propagation="REQUIRED" read-only="true" />  
+			<tx:method name="load*" propagation="REQUIRED" read-only="true" />  
+			<tx:method name="*" propagation="REQUIRED" read-only="true" />  
+		</tx:attributes>
+	</tx:advice>
+	<!-- 定义切面 -->
+	<aop:config>
+		<!-- 定义切入点 -->
+		<aop:pointcut expression="execution(* cn.wyy.service.*.*(..))" id="serviceMethod"/>
+		<!-- 将事务增强与切入点组合 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"/>
+	</aop:config>
+
+</beans>
